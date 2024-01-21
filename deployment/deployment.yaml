@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lentra-app-service
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30037
+      protocol: TCP
+  selector:
+    app: lentra-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lentra-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lentra-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0%
+      maxSurge: 50%
+  minReadySeconds: 30
+  template:
+    metadata:
+      labels:
+        app: lentra-app
+    spec:
+      containers:
+        - name: lentra-app
+          image: sachins78/lentra-app:1.0
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: database-credentials
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-credentials
+                  key: password
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: database-credentials
+                  key: url
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "0.5Gi"
+              cpu: "0.5"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            failureThreshold: 20
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            failureThreshold: 5
+            initialDelaySeconds: 20
+            periodSeconds: 30
