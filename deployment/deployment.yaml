@@ -71,8 +71,6 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8080
-            failureThreshold: 5
-            initialDelaySeconds: 20
+            failureThreshold: 10
+            initialDelaySeconds: 30
             periodSeconds: 30
-      nodeSelector:
-        role: worker
