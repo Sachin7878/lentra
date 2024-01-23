@@ -74,3 +74,5 @@ spec:
             failureThreshold: 5
             initialDelaySeconds: 20
             periodSeconds: 30
+      nodeSelector:
+        role: worker
